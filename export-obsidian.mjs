@@ -2,7 +2,7 @@ import { readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const journalRoot = process.argv[2] ?? "/home/enjoy/Documents/Obsidian Vault/Journal";
-const selected = ["Journal", "Planera", "Hygien", "Hållning"];
+const selected = ["Journal", "Läsa", "Hygien", "Hållning"];
 const completed = Object.fromEntries(selected.map(name => [name, new Set()]));
 
 async function markdownFiles(directory) {
