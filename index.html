@@ -12,7 +12,7 @@
     body { display: flex; justify-content: center; color: #fff; overflow: hidden; }
     main {
       width: min(100%, 390px); min-height: 100dvh;
-      padding: max(250px, env(safe-area-inset-top)) 13px max(18px, env(safe-area-inset-bottom));
+      padding: max(300px, env(safe-area-inset-top)) 13px max(18px, env(safe-area-inset-bottom));
       display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 12px;
     }
     section { width: max-content; position: relative; }
@@ -28,14 +28,9 @@
 </head>
 <body>
   <main id="tracker" aria-label="Habit tracker"></main>
+  <script src="habits-data.js"></script>
   <script>
-    // Ersätt namnen och datumen med dina fyra Obsidian-properties.
-    const habits = [
-      { name: "Träning", done: ["2026-08-01", "2026-08-03", "2026-08-05", "2026-08-08", "2026-08-10", "2026-08-12", "2026-08-15"] },
-      { name: "Meditation", done: ["2026-08-02", "2026-08-04", "2026-08-06", "2026-08-07", "2026-08-09", "2026-08-11", "2026-08-13", "2026-08-14", "2026-08-16"] },
-      { name: "Läsning", done: ["2026-07-30", "2026-08-01", "2026-08-02", "2026-08-06", "2026-08-09", "2026-08-12", "2026-08-16"] },
-      { name: "Promenad", done: ["2026-07-29", "2026-07-31", "2026-08-03", "2026-08-04", "2026-08-08", "2026-08-11", "2026-08-14", "2026-08-15"] }
-    ];
+    const habits = window.habitsData ?? [];
     const tracker = document.querySelector("#tracker");
     const today = new Date();
     today.setHours(12, 0, 0, 0);
