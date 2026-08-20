@@ -23,6 +23,9 @@
     }
     .day { width: 5px; height: 5px; border-radius: 50%; background: #404040; }
     .day.done { background: #fff; }
+    .day.readiness-low { background: #ff5f56; }
+    .day.readiness-moderate { background: #ffbd2e; }
+    .day.readiness-high { background: #27c93f; }
     .day.label-space { visibility: hidden; }
   </style>
 </head>
@@ -31,6 +34,7 @@
   <script src="habits-data.js"></script>
   <script>
     const habits = window.habitsData ?? [];
+    const readiness = window.readinessData ?? {};
     const tracker = document.querySelector("#tracker");
     const today = new Date();
     today.setHours(12, 0, 0, 0);
@@ -40,27 +44,47 @@
       const d = String(date.getDate()).padStart(2, "0");
       return `${y}-${m}-${d}`;
     };
-    habits.slice(0, 4).forEach(habit => {
+    const appendHeatmap = (name, classForDate, labelForDate) => {
       const section = document.createElement("section");
       const title = document.createElement("h2");
       const grid = document.createElement("div");
-      const completed = new Set(habit.done);
-      title.textContent = habit.name;
+      title.textContent = name;
       grid.className = "heatmap";
-      const labelColumns = Math.ceil((habit.name.length * 7.2 + 8) / 12);
+      const labelColumns = Math.ceil((name.length * 7.2 + 8) / 12);
       let index = 0;
       for (let offset = 174; offset >= 0; offset -= 1) {
         const date = new Date(today);
         date.setDate(today.getDate() - offset);
         const dot = document.createElement("span");
-        dot.className = completed.has(isoDate(date)) ? "day done" : "day";
+        const key = isoDate(date);
+        dot.className = `day ${classForDate(key)}`.trim();
+        const label = labelForDate?.(key);
+        if (label) {
+          dot.title = label;
+          dot.setAttribute("aria-label", label);
+        }
         if (index % 7 === 0 && index / 7 < labelColumns) dot.classList.add("label-space");
         grid.append(dot);
         index += 1;
       }
       section.append(title, grid);
       tracker.append(section);
+    };
+    habits.slice(0, 4).forEach(habit => {
+      const completed = new Set(habit.done);
+      appendHeatmap(habit.name, date => completed.has(date) ? "done" : "");
     });
+    appendHeatmap(
+      "Dagsform",
+      date => {
+        const score = readiness[date];
+        if (!Number.isFinite(score)) return "";
+        if (score >= 65) return "readiness-high";
+        if (score >= 30) return "readiness-moderate";
+        return "readiness-low";
+      },
+      date => Number.isFinite(readiness[date]) ? `${date} · Dagsform ${readiness[date]}` : "",
+    );
   </script>
 </body>
 </html>
