@@ -36,8 +36,9 @@
     const habits = window.habitsData ?? [];
     const readiness = window.readinessData ?? {};
     const tracker = document.querySelector("#tracker");
-    const today = new Date();
-    today.setHours(12, 0, 0, 0);
+    const lastCompleteDay = new Date();
+    lastCompleteDay.setHours(12, 0, 0, 0);
+    lastCompleteDay.setDate(lastCompleteDay.getDate() - 1);
     const isoDate = date => {
       const y = date.getFullYear();
       const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -53,8 +54,8 @@
       const labelColumns = Math.ceil((name.length * 7.2 + 8) / 12);
       let index = 0;
       for (let offset = 174; offset >= 0; offset -= 1) {
-        const date = new Date(today);
-        date.setDate(today.getDate() - offset);
+        const date = new Date(lastCompleteDay);
+        date.setDate(lastCompleteDay.getDate() - offset);
         const dot = document.createElement("span");
         const key = isoDate(date);
         dot.className = `day ${classForDate(key)}`.trim();
