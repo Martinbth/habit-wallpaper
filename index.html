@@ -13,10 +13,10 @@
     main {
       width: min(100%, 390px); min-height: 100dvh;
       padding: max(325px, env(safe-area-inset-top)) 13px max(18px, env(safe-area-inset-bottom));
-      display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 12px;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 18px;
     }
     section { width: max-content; position: relative; }
-    h2 { position: absolute; z-index: 1; top: -3px; left: 0; margin: 0; font: inherit; font-weight: 400; line-height: 1; color: #fff; }
+    h2 { position: absolute; z-index: 1; top: -14px; left: 0; margin: 0; font: inherit; font-weight: 400; line-height: 1; color: #fff; }
     .heatmap {
       display: grid; grid-template-columns: repeat(25, 5px); grid-template-rows: repeat(7, 5px);
       grid-auto-flow: column; place-items: center; gap: 7px; width: max-content; margin-inline: auto;
@@ -26,7 +26,7 @@
     .day.readiness-low { background: #ff5f56; }
     .day.readiness-moderate { background: #ffbd2e; }
     .day.readiness-high { background: #27c93f; }
-    .day.label-space { visibility: hidden; }
+    .day.no-data { visibility: hidden; }
   </style>
 </head>
 <body>
@@ -34,28 +34,29 @@
   <script src="habits-data.js"></script>
   <script>
     const habits = window.habitsData ?? [];
+    const readinessStart = window.readinessStart;
     const readiness = window.readinessData ?? {};
     const tracker = document.querySelector("#tracker");
-    const lastCompleteDay = new Date();
-    lastCompleteDay.setHours(12, 0, 0, 0);
-    lastCompleteDay.setDate(lastCompleteDay.getDate() - 1);
+    const currentDay = new Date();
+    currentDay.setHours(12, 0, 0, 0);
     const isoDate = date => {
       const y = date.getFullYear();
       const m = String(date.getMonth() + 1).padStart(2, "0");
       const d = String(date.getDate()).padStart(2, "0");
       return `${y}-${m}-${d}`;
     };
-    const appendHeatmap = (name, classForDate, labelForDate) => {
+    const parseDate = value => {
+      const [year, month, day] = value.split("-").map(Number);
+      const date = new Date(year, month - 1, day, 12);
+      return Number.isNaN(date.getTime()) ? null : date;
+    };
+    const appendHeatmap = (name, dates, classForDate, labelForDate) => {
       const section = document.createElement("section");
       const title = document.createElement("h2");
       const grid = document.createElement("div");
       title.textContent = name;
       grid.className = "heatmap";
-      const labelColumns = Math.ceil((name.length * 7.2 + 8) / 12);
-      let index = 0;
-      for (let offset = 174; offset >= 0; offset -= 1) {
-        const date = new Date(lastCompleteDay);
-        date.setDate(lastCompleteDay.getDate() - offset);
+      for (const date of dates) {
         const dot = document.createElement("span");
         const key = isoDate(date);
         dot.className = `day ${classForDate(key)}`.trim();
@@ -64,22 +65,35 @@
           dot.title = label;
           dot.setAttribute("aria-label", label);
         }
-        if (index % 7 === 0 && index / 7 < labelColumns) dot.classList.add("label-space");
         grid.append(dot);
-        index += 1;
       }
       section.append(title, grid);
       tracker.append(section);
     };
     habits.slice(0, 4).forEach(habit => {
       const completed = new Set(habit.done);
-      appendHeatmap(habit.name, date => completed.has(date) ? "done" : "");
+      const start = parseDate(habit.start);
+      const dates = [];
+      if (start) {
+        for (const date = new Date(start); date <= currentDay; date.setDate(date.getDate() + 1)) {
+          dates.push(new Date(date));
+        }
+      }
+      appendHeatmap(habit.name, dates, date => completed.has(date) ? "done" : "");
     });
+    const readinessDates = [];
+    const readinessFirstDay = parseDate(readinessStart);
+    if (readinessFirstDay) {
+      for (const date = new Date(readinessFirstDay); date <= currentDay; date.setDate(date.getDate() + 1)) {
+        readinessDates.push(new Date(date));
+      }
+    }
     appendHeatmap(
       "Dagsform",
+      readinessDates,
       date => {
         const score = readiness[date];
-        if (!Number.isFinite(score)) return "";
+        if (!Number.isFinite(score)) return "no-data";
         if (score >= 65) return "readiness-high";
         if (score >= 30) return "readiness-moderate";
         return "readiness-low";
