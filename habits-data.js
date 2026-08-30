@@ -29,4 +29,6 @@ window.habitsData = [
   }
 ];
 window.readinessStart = "2026-08-27";
-window.readinessData = {};
+window.readinessData = {
+  "2026-08-28": 61
+};
